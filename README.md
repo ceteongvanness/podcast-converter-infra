@@ -38,7 +38,7 @@ podcast-converter-infra/
 
 1. Clone the repository:
 ```bash
-git clone https://github.com/your-username/podcast-converter-infra.git
+git clone https://github.com/ceteongvanness/podcast-converter-infra.git
 cd podcast-converter-infra
 ```
 
