@@ -42,7 +42,7 @@ terraform/
 
 1. Clone the repository:
 ```bash
-git clone https://github.com/your-organization/podcast-converter-infrastructure.git
+git clone https://github.com/ceteongvanness/podcast-converter-infrastructure.git
 cd podcast-converter-infrastructure
 ```
 
