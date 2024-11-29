@@ -1,49 +1,45 @@
 # Podcast Converter Infrastructure
 
-This repository contains the Terraform configurations for the Podcast Converter application infrastructure on AWS.
+Infrastructure as Code (IaC) repository for the Podcast Converter application using Terraform.
 
 ## Infrastructure Overview
 
 ```
-terraform/
-├── environments/           # Environment-specific configurations
-│   ├── dev/               # Development environment
-│   │   ├── main.tf        # Main configuration file
-│   │   └── variables.tfvars # Environment variables
-│   ├── staging/           # Staging environment
-│   │   ├── main.tf
-│   │   └── variables.tfvars
-│   └── prod/              # Production environment
-│       ├── main.tf
-│       └── variables.tfvars
-├── modules/               # Reusable infrastructure modules
-│   └── podcast-converter/ # Main application module
-│       ├── main.tf       # Module configuration
-│       ├── variables.tf  # Module variables
-│       └── outputs.tf    # Module outputs
-├── provider.tf           # Provider configurations
-├── variables.tf          # Common variables
-├── vpc.tf               # VPC configuration
-├── eks.tf               # EKS configuration
-├── s3.tf                # S3 configuration
-├── iam.tf               # IAM roles and policies
-├── monitoring.tf        # Monitoring setup
-└── outputs.tf           # Output configurations
+podcast-converter-infra/
+├── .github/
+│   └── workflows/
+│       └── terraform.yml    # Infrastructure CI/CD
+├── terraform/
+│   ├── environments/        # Environment-specific configs
+│   │   ├── dev/
+│   │   ├── staging/
+│   │   └── prod/
+│   ├── modules/            # Reusable modules
+│   │   └── podcast-converter/
+│   ├── provider.tf
+│   ├── variables.tf
+│   ├── vpc.tf
+│   ├── eks.tf
+│   ├── s3.tf
+│   ├── iam.tf
+│   ├── monitoring.tf
+│   └── outputs.tf
+└── versions.tf
 ```
 
 ## Prerequisites
 
 - Terraform >= 1.0.0
-- AWS CLI configured with appropriate credentials
-- kubectl installed for Kubernetes operations
-- AWS account with necessary permissions
+- AWS CLI configured
+- GitHub Actions secrets configured
+- AWS account with required permissions
 
 ## Quick Start
 
 1. Clone the repository:
 ```bash
-git clone https://github.com/ceteongvanness/podcast-converter-infrastructure.git
-cd podcast-converter-infrastructure
+git clone https://github.com/your-username/podcast-converter-infra.git
+cd podcast-converter-infra
 ```
 
 2. Initialize Terraform:
@@ -52,126 +48,102 @@ cd terraform/environments/dev  # or staging/prod
 terraform init
 ```
 
-3. Review the plan:
+3. Deploy infrastructure:
 ```bash
 terraform plan -var-file="variables.tfvars"
-```
-
-4. Apply the configuration:
-```bash
 terraform apply -var-file="variables.tfvars"
 ```
 
 ## Environment Configurations
 
 ### Development
-- VPC CIDR: 10.0.0.0/16
-- Node Group: 2-3 nodes
-- Instance Type: t3.medium
-- Single NAT Gateway
+- Small-scale infrastructure
+- Single availability zone
+- Cost-optimized resources
+- Minimal redundancy
 
 ### Staging
-- VPC CIDR: 10.1.0.0/16
-- Node Group: 2-4 nodes
-- Instance Type: t3.medium
-- Single NAT Gateway
+- Medium-scale infrastructure
+- Two availability zones
+- Monitoring enabled
+- Test environment for production
 
 ### Production
-- VPC CIDR: 10.2.0.0/16
-- Node Group: 3-10 nodes
-- Instance Type: t3.medium
-- Multiple NAT Gateways (one per AZ)
-- Enhanced monitoring
-- Multi-AZ deployment
+- Full-scale infrastructure
+- Three availability zones
+- High availability
+- Full monitoring and alerting
+- Automated backups
 
-## Module Usage
+## Infrastructure Components
 
-```hcl
-module "podcast_converter" {
-  source = "../../modules/podcast-converter"
-
-  environment = "dev"
-  aws_region = var.aws_region
-  cluster_name = "podcast-converter-dev"
-  
-  vpc_cidr = "10.0.0.0/16"
-  public_subnets = ["10.0.1.0/24", "10.0.2.0/24"]
-  private_subnets = ["10.0.3.0/24", "10.0.4.0/24"]
-  
-  node_group_min_size = 2
-  node_group_max_size = 3
-  node_group_desired_size = 2
-}
-```
-
-## Resource Management
-
-### Created Resources
-- VPC with public and private subnets
-- EKS cluster with managed node groups
-- S3 bucket for audio storage
+- VPC with public/private subnets
+- EKS cluster
+- Managed node groups
+- S3 buckets
 - IAM roles and policies
-- Monitoring stack (Prometheus & Grafana)
-- Security groups and networking rules
+- Monitoring stack (Prometheus/Grafana)
 
-### Destroying Resources
-```bash
-terraform destroy -var-file="variables.tfvars"
-```
+## CI/CD
 
-## Monitoring and Maintenance
-
-### Accessing Monitoring
-```bash
-kubectl port-forward svc/grafana 3000:3000 -n monitoring
-```
-
-### Updating Infrastructure
-1. Make changes to relevant .tf files
-2. Run terraform plan to review changes
-3. Apply changes after review
-4. Verify infrastructure status
+The `terraform.yml` workflow:
+- Runs on infrastructure changes
+- Validates Terraform configurations
+- Plans changes on pull requests
+- Applies changes when merged to main
 
 ## Security
 
-- All sensitive data stored in AWS Secrets Manager
-- Private subnets for EKS nodes
-- Security groups limiting access
-- IAM roles following principle of least privilege
+- Encrypted storage
+- Private subnets for EKS
+- IAM roles with least privilege
+- Security group restrictions
+- Regular security audits
 
-## Cost Management
+## Monitoring
 
-- Dev/Staging environments use single NAT Gateway
-- Auto-scaling configured based on environment
-- Cost allocation tags applied to all resources
+- EKS cluster metrics
+- Node monitoring
+- Application metrics
+- Cost monitoring
+- Alert management
 
-## Troubleshooting
+## Disaster Recovery
 
-Common issues and solutions:
-
-1. EKS Cluster Creation Fails
-```bash
-aws eks describe-cluster --name cluster-name --region region
-```
-
-2. VPC Subnet Issues
-```bash
-aws ec2 describe-subnets --filters "Name=vpc-id,Values=vpc-id"
-```
+- Regular state backups
+- Multi-AZ deployment
+- Automated snapshots
+- Recovery procedures
 
 ## Contributing
 
-1. Create a new branch
-2. Make your changes
-3. Test in dev environment
-4. Submit pull request
+1. Fork the repository
+2. Create feature branch
+3. Make changes
+4. Test in dev environment
+5. Submit pull request
 
-## Backup and Disaster Recovery
+### Branch Protection Rules
+- Main branch protected
+- Required reviews
+- Required status checks
+- No direct commits to main
 
-- EKS cluster snapshots
-- S3 bucket versioning
-- Multi-AZ deployment in production
-- Regular terraform state backups
+## Cost Management
 
-For support, please contact the infrastructure team or create an issue in the repository.
+- Resource tagging
+- Cost allocation
+- Automated reporting
+- Environment-specific optimizations
 
+## Support
+
+For issues:
+1. Check existing issues
+2. Provide clear description
+3. Include logs/errors
+4. Tag appropriately
+
+## License
+
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
